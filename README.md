@@ -7,6 +7,9 @@
   - [新しいモデルをデータベースに追加する](#%E6%96%B0%E3%81%97%E3%81%84%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E3%83%87%E3%83%BC%E3%82%BF%E3%83%99%E3%83%BC%E3%82%B9%E3%81%AB%E8%BF%BD%E5%8A%A0%E3%81%99%E3%82%8B)
   - [superuserの作成](#superuser%E3%81%AE%E4%BD%9C%E6%88%90)
   - [Django shell の起動](#django-shell-%E3%81%AE%E8%B5%B7%E5%8B%95)
+- [遭遇したエラーと対処](#%E9%81%AD%E9%81%87%E3%81%97%E3%81%9F%E3%82%A8%E3%83%A9%E3%83%BC%E3%81%A8%E5%AF%BE%E5%87%A6)
+  - [views.py内でTypeErrorの発生](#viewspy%E5%86%85%E3%81%A7typeerror%E3%81%AE%E7%99%BA%E7%94%9F)
+- [やってないこと](#%E3%82%84%E3%81%A3%E3%81%A6%E3%81%AA%E3%81%84%E3%81%93%E3%81%A8)
 
 ## version
 
@@ -79,3 +82,28 @@ Windows上で`UnicodeDecodeError`で失敗した場合、代わりに次のコ�
 ```powershell
 (myvenv) C:\workspace> python manage.py shell
 ```
+
+## 遭遇したエラーと対処
+
+### views.py内でTypeErrorの発生
+
+[アプリケーションを拡張しよう](https://tutorial.djangogirls.org/ja/extend_your_application/)の章で実装後に`http://127.0.0.1:8000/post/1/`へアクセスすると`TypeError`が発生した。
+
+![TypeError](img/2019-04-10-16-15-02.png)
+
+どうやら`pk`に問題があるっぽい。以下のstack overflowページが参考になった。
+
+[python - TypeError: cannot unpack non-iterable int object in Django views function - Stack Overflow](https://stackoverflow.com/questions/53242684/typeerror-cannot-unpack-non-iterable-int-object-in-django-views-function)
+
+どうやら、`views.py`で`get()`や`filter()`などを使う際は、パラメータの名前を特定するらしい。以下のように変更し、再度アクセスしたところ、無事ページが表示された。どうやら、`id`を指定しないままiterableでないint型の`pk`を渡してしまったのでTypeErrorとなったようだ。
+
+```python
+post = get_object_or_404(Post, pk) # 変更前
+post = get_object_or_404(Post, id=pk) # 変更後
+```
+
+![after](img/2019-04-10-16-22-16.png)
+
+## やってないこと
+
+- [PythonAnywhere](https://www.pythonanywhere.com/)へのデプロイ
